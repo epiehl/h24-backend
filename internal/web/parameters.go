@@ -17,7 +17,7 @@ type SKUParam struct {
 	SKU uint64 `json:"sku"`
 }
 
-// swagger:parameters ListItems
+// swagger:parameters PaginatedListItems
 type LimitParam struct {
 	// in: query
 	// required: false
@@ -27,7 +27,7 @@ type LimitParam struct {
 	Limit int `json:"limit"`
 }
 
-// swagger:parameters ListItems
+// swagger:parameters PaginatedListItems
 type PageParam struct {
 	// in: query
 	// required: false
@@ -35,4 +35,22 @@ type PageParam struct {
 	//   type: integer
 	//   default: 1
 	Page int `json:"page"`
+}
+
+// swagger:parameters PaginatedListItems
+type AvailableInOutlet struct {
+	// in: query
+	// required: false
+	// schema:
+	//   type: boolean
+	AvailableInOutlet bool `json:"available_in_outlet"`
+}
+
+// swagger:parameters SearchItems
+type SearchTerm struct {
+	// in: query
+	// required: true
+	// schema:
+	//   type: string
+	Term string `json:"term"`
 }

@@ -34,7 +34,7 @@
           }
         ],
         "summary": "List items",
-        "operationId": "ListItems",
+        "operationId": "PaginatedListItems",
         "parameters": [
           {
             "type": "integer",
@@ -51,6 +51,38 @@
             "x-go-name": "Page",
             "name": "page",
             "in": "query"
+          },
+          {
+            "type": "boolean",
+            "x-go-name": "AvailableInOutlet",
+            "name": "available_in_outlet",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "paginated list response",
+            "schema": {
+              "type": "object"
+            }
+          },
+          "default": {
+            "$ref": "#/responses/ErrResponse"
+          }
+        }
+      }
+    },
+    "/item/search": {
+      "get": {
+        "summary": "Search an item by Searchterm",
+        "operationId": "SearchItems",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "Term",
+            "name": "term",
+            "in": "query",
+            "required": true
           }
         ],
         "responses": {
@@ -264,10 +296,18 @@
           "type": "boolean",
           "x-go-name": "AvailableInOutlet"
         },
+        "available_in_retail": {
+          "type": "boolean",
+          "x-go-name": "AvailableInRetail"
+        },
         "id": {
           "type": "integer",
           "format": "uint64",
           "x-go-name": "ID"
+        },
+        "image_url": {
+          "type": "string",
+          "x-go-name": "ImageUrl"
         },
         "name": {
           "type": "string",
@@ -293,6 +333,10 @@
           "format": "double",
           "x-go-name": "RetailPrice"
         },
+        "retail_url": {
+          "type": "string",
+          "x-go-name": "RetailUrl"
+        },
         "sku": {
           "type": "integer",
           "format": "uint64",
@@ -305,6 +349,10 @@
       "description": "Wishlist is a json representation of a wishlist",
       "type": "object",
       "properties": {
+        "example_image": {
+          "type": "string",
+          "x-go-name": "ExampleImage"
+        },
         "id": {
           "description": "ID is the unique id of the wishlist",
           "type": "integer",
@@ -354,9 +402,15 @@
         "available_in_outlet": {
           "type": "boolean"
         },
+        "available_in_retail": {
+          "type": "boolean"
+        },
         "id": {
           "type": "integer",
           "format": "uint64"
+        },
+        "image_url": {
+          "type": "string"
         },
         "name": {
           "type": "string"
@@ -377,6 +431,9 @@
           "type": "number",
           "format": "double"
         },
+        "retail_url": {
+          "type": "string"
+        },
         "sku": {
           "type": "integer",
           "format": "uint64"
@@ -386,6 +443,9 @@
     "WishlistResponse": {
       "description": "WishlistResponse contains response information that will be returned to the request issuer",
       "headers": {
+        "example_image": {
+          "type": "string"
+        },
         "id": {
           "type": "integer",
           "format": "uint64",

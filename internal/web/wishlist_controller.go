@@ -3,9 +3,9 @@ package web
 import (
 	"errors"
 	"github.com/epiehl93/h24-notifier/internal/adapter"
+	"github.com/epiehl93/h24-notifier/internal/utils"
 	"github.com/epiehl93/h24-notifier/pkg/models"
 	"github.com/go-chi/render"
-	"log"
 	"net/http"
 )
 
@@ -19,7 +19,7 @@ type WishlistController interface {
 }
 
 type wishlistController struct {
-	adapter.Registry
+	*adapter.Registry
 }
 
 //  swagger:operation GET /wishlist GetAllWishlists
@@ -38,9 +38,10 @@ func (c wishlistController) GetAllWishlists(w http.ResponseWriter, r *http.Reque
 	ctx := r.Context()
 	userUUID := ctx.Value("userUUID").(string)
 
-	lists, err := c.WishlistRepository.GetAll(userUUID)
+	lists, err := c.Wishlist.GetAll(userUUID)
 	if err != nil {
 		_ = render.Render(w, r, ErrRender(err))
+		return
 	}
 
 	if err := render.RenderList(w, r, NewWishlistListResponse(lists)); err != nil {
@@ -78,7 +79,7 @@ func (c wishlistController) AddItemToWishlist(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	if err := c.WishlistRepository.Update(list); err != nil {
+	if err := c.Wishlist.Update(list); err != nil {
 		_ = render.Render(w, r, ErrRender(err))
 		return
 	}
@@ -86,7 +87,7 @@ func (c wishlistController) AddItemToWishlist(w http.ResponseWriter, r *http.Req
 	render.Status(r, http.StatusCreated)
 	err := render.Render(w, r, NewWishlistResponse(list))
 	if err != nil {
-		log.Println(err)
+		utils.Log.Error(err)
 	}
 }
 
@@ -113,14 +114,14 @@ func (c wishlistController) DeleteItemFromWishlist(w http.ResponseWriter, r *htt
 		return
 	}
 
-	if err := c.WishlistRepository.RemoveItem(list, item); err != nil {
+	if err := c.Wishlist.RemoveItem(list, item); err != nil {
 		_ = render.Render(w, r, ErrRender(errors.New("error deleting item from wishlist")))
 		return
 	}
 
 	err := render.Render(w, r, NewWishlistResponse(list))
 	if err != nil {
-		log.Println(err)
+		utils.Log.Error(err)
 	}
 }
 
@@ -149,8 +150,8 @@ func (c wishlistController) CreateWishlist(w http.ResponseWriter, r *http.Reques
 	}
 
 	list := &models.Wishlist{Name: data.Name, UserSub: userUUID}
-	if err := c.WishlistRepository.Create(list); err != nil {
-		log.Println(err)
+	if err := c.Wishlist.Create(list); err != nil {
+		utils.Log.Error(err)
 		_ = render.Render(w, r, ErrInternalServerError(err))
 		return
 	}
@@ -197,7 +198,7 @@ func (c wishlistController) DeleteWishlist(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	err := c.WishlistRepository.Delete(wlist)
+	err := c.Wishlist.Delete(wlist)
 	if err != nil {
 		_ = render.Render(w, r, ErrRender(errors.New("unable to delete wishlist")))
 	}
@@ -208,6 +209,6 @@ func (c wishlistController) DeleteWishlist(w http.ResponseWriter, r *http.Reques
 	}
 }
 
-func NewWishlistController(r adapter.Registry) WishlistController {
+func NewWishlistController(r *adapter.Registry) WishlistController {
 	return &wishlistController{r}
 }

@@ -4,11 +4,11 @@ import (
 	"errors"
 	"fmt"
 	"github.com/PuerkitoBio/goquery"
-	"github.com/epiehl93/h24-notifier/config"
 	"github.com/epiehl93/h24-notifier/internal/adapter"
+	"github.com/epiehl93/h24-notifier/internal/utils"
 	"github.com/epiehl93/h24-notifier/pkg/models"
+	"github.com/spf13/viper"
 	"gorm.io/gorm"
-	"log"
 	"net/http"
 	"regexp"
 	"strconv"
@@ -21,17 +21,17 @@ type OutletAggregator interface {
 	CheckUnavailability() error
 }
 
-type outletAggregator struct {
-	adapter.Registry
+type OutletAggregatorImpl struct {
+	*adapter.Registry
 }
 
-func (o outletAggregator) CheckUnavailability() error {
-	items, err := o.ItemRepository.FindAvailableInOutlet()
+func (o OutletAggregatorImpl) CheckUnavailability() error {
+	items, err := o.Item.FindAvailableInOutlet()
 	if err != nil {
 		return err
 	}
 
-	lastCycle, err := o.CycleRepository.GetLastSuccessfulCycle(models.AggregationCycle)
+	lastCycle, err := o.Cycle.GetLastSuccessfulCycle(models.AggregationCycle)
 	if err != nil {
 		return err
 	}
@@ -39,8 +39,8 @@ func (o outletAggregator) CheckUnavailability() error {
 	for _, item := range items {
 		// Check if it is older than last cycle
 		if item.LastAggregatedAt.Before(lastCycle.At) {
-			log.Printf("Item with sku %d: %s older than %s\n", item.SKU, item.LastAggregatedAt, lastCycle.At)
-			err := o.ItemRepository.SetUnavailableInOutlet(item)
+			utils.Log.Infof("Item with sku %d: %s older than %s\n", item.SKU, item.LastAggregatedAt, lastCycle.At)
+			err := o.Item.SetUnavailableInOutlet(item)
 			if err != nil {
 				return err
 			}
@@ -49,7 +49,7 @@ func (o outletAggregator) CheckUnavailability() error {
 	return nil
 }
 
-func (o outletAggregator) Run() error {
+func (o OutletAggregatorImpl) Run() error {
 	now := time.Now()
 	if err := o.AggregateItems(); err != nil {
 		return o.ReturnErrorAndSetFailedCycle(err, now)
@@ -66,19 +66,19 @@ func (o outletAggregator) Run() error {
 	return nil
 }
 
-func (o outletAggregator) AggregateItems() error {
+func (o OutletAggregatorImpl) AggregateItems() error {
 	done := false
 	siteIndex := 1
 
 	for !done {
 
 		url := fmt.Sprintf("%s://%s/%s?p=%d&is_ajax=1",
-			config.C.Aggregator.Outlet.Endpoint.Scheme,
-			config.C.Aggregator.Outlet.Endpoint.Host,
-			config.C.Aggregator.Outlet.Endpoint.Location,
+			viper.GetString("aggregator.outlet.endpoint.scheme"),
+			viper.GetString("aggregator.outlet.endpoint.host"),
+			viper.GetString("aggregator.outlet.endpoint.location"),
 			siteIndex)
 
-		log.Printf("Calling url %s \n", url)
+		utils.Log.Infof("Calling url %s \n", url)
 
 		res, err := http.Get(url)
 		if err != nil {
@@ -97,7 +97,7 @@ func (o outletAggregator) AggregateItems() error {
 
 		selection := doc.Find("div.product-item")
 		if selection.Length() == 0 {
-			log.Println("Response body seems empty. Finishing")
+			utils.Log.Infof("Response body seems empty. Finishing")
 			done = true
 			break
 		}
@@ -115,14 +115,14 @@ func (o outletAggregator) AggregateItems() error {
 	return nil
 }
 
-func (o outletAggregator) ProcessDocument(i int, selection *goquery.Selection) {
+func (o OutletAggregatorImpl) ProcessDocument(i int, selection *goquery.Selection) {
 	if err := o.ExtractItemFromSelection(selection); err != nil {
-		log.Panicln(err)
+		utils.Log.Panic(err)
 	}
-	log.Println("Successfully extracted data")
+	utils.Log.Infof("Successfully extracted data")
 }
 
-func (o outletAggregator) ExtractItemFromSelection(selection *goquery.Selection) error {
+func (o OutletAggregatorImpl) ExtractItemFromSelection(selection *goquery.Selection) error {
 	var eName string
 	var eSku uint64
 	var ePriceOld float64
@@ -162,10 +162,10 @@ func (o outletAggregator) ExtractItemFromSelection(selection *goquery.Selection)
 	}
 
 	itemExists := true
-	newItem, err := o.Registry.ItemRepository.GetBySKU(eSku)
+	newItem, err := o.Item.GetBySKU(eSku)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			fmt.Printf("Item with sku %d not found, creating\n", eSku)
+			utils.Log.Infof("Item with sku %d not found, creating\n", eSku)
 			itemExists = false
 		} else {
 			return err
@@ -177,23 +177,29 @@ func (o outletAggregator) ExtractItemFromSelection(selection *goquery.Selection)
 	}
 
 	newItem.Name = eName
+	newItem.SKU = eSku
 	newItem.OutletPrice = ePriceNew
 	newItem.RetailPrice = ePriceOld
 	newItem.LastAggregatedAt = time.Now()
 
+	_, err = o.H24.EnrichItemWithRetailData(newItem)
+	if err != nil {
+		return err
+	}
+
 	if !itemExists {
 		newItem.SKU = eSku
-		err := o.Registry.ItemRepository.Create(newItem)
+		err := o.Registry.Item.Create(newItem)
 		if err != nil {
 			return err
 		}
 	} else {
-		if err := o.Registry.ItemRepository.Update(newItem); err != nil {
+		if err := o.Registry.Item.Update(newItem); err != nil {
 			return err
 		}
 	}
 
-	err = o.ItemRepository.SetAvailableInOutlet(newItem)
+	err = o.Item.SetAvailableInOutlet(newItem)
 	if err != nil {
 		return err
 	}
@@ -222,24 +228,24 @@ func ParseSkuFromString(sku string) (uint64, error) {
 	}
 }
 
-func (o outletAggregator) ReturnErrorAndSetFailedCycle(err error, at time.Time) error {
-	e := o.CycleRepository.Create(&models.Cycle{Successful: false, At: at, Type: models.AggregationCycle})
+func (o OutletAggregatorImpl) ReturnErrorAndSetFailedCycle(err error, at time.Time) error {
+	e := o.Cycle.Create(&models.Cycle{Successful: false, At: at, Type: models.AggregationCycle})
 	if e != nil {
 		return e
 	}
-	log.Print("Aggregation was not successful")
+	utils.Log.Infof("Aggregation was not successful")
 	return err
 }
 
-func (o outletAggregator) SetSuccessfulCycle(at time.Time) error {
-	err := o.CycleRepository.Create(&models.Cycle{Successful: true, At: at, Type: models.AggregationCycle})
+func (o OutletAggregatorImpl) SetSuccessfulCycle(at time.Time) error {
+	err := o.Cycle.Create(&models.Cycle{Successful: true, At: at, Type: models.AggregationCycle})
 	if err != nil {
 		return err
 	}
-	log.Println("Aggregation was successful")
+	utils.Log.Infof("Aggregation was successful")
 	return nil
 }
 
-func NewOutletAggregator(r adapter.Registry) OutletAggregator {
-	return &outletAggregator{r}
+func NewOutletAggregator(r *adapter.Registry) OutletAggregator {
+	return &OutletAggregatorImpl{r}
 }

@@ -1,12 +1,10 @@
 package config
 
 import (
-	"fmt"
-	"log"
+	"github.com/epiehl93/h24-notifier/internal/utils"
 	"os"
 	"path/filepath"
-
-	"github.com/davecgh/go-spew/spew"
+	"strings"
 
 	"github.com/spf13/viper"
 )
@@ -61,17 +59,21 @@ func ReadConfig() {
 	viper.SetConfigName("config")
 	viper.SetConfigType("yml")
 	viper.AddConfigPath(filepath.Join("$GOPATH", "src", "github.com", "epiehl93", "h24-notifier", "config"))
+	viper.SetEnvPrefix("H24")
+	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+
 	viper.AutomaticEnv()
 
 	if err := viper.ReadInConfig(); err != nil {
-		fmt.Println(err)
-		log.Fatalln(err)
+		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
+			utils.Log.Warnf("could not find config")
+		} else {
+			utils.Log.Fatal(err)
+		}
 	}
 
 	if err := viper.Unmarshal(&Config); err != nil {
-		fmt.Println(err)
+		utils.Log.Error(err)
 		os.Exit(1)
 	}
-
-	spew.Dump(1)
 }

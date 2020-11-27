@@ -2,7 +2,6 @@ package models
 
 import (
 	"errors"
-	"fmt"
 	"time"
 )
 
@@ -21,20 +20,22 @@ type Item struct {
 	ID                     uint64    `json:"id"`
 	Name                   string    `json:"name"`
 	SKU                    uint64    `json:"sku" gorm:"unique;not null"`
+	ImageUrl               string    `json:"image_url"`
+	RetailUrl              string    `json:"retail_url"`
 	RetailPrice            float64   `json:"retail_price"`
 	RetailDiscount         float64   `json:"retail_discount"`
 	RetailDiscountPrice    float64   `json:"retail_discount_price"`
 	OutletPrice            float64   `json:"outlet_price"`
 	CreatedAt              time.Time `json:"created_at"`
 	UpdatedAt              time.Time `json:"updated_at"`
+	AvailableInRetail      bool      `json:"available_in_retail"`
 	AvailableInOutlet      bool      `json:"available_in_outlet"`
 	AvailableInOutletSince time.Time `json:"available_in_outlet_since"`
 	LastAggregatedAt       time.Time `json:"last_aggregated_at"`
+	LastEnrichedAt         time.Time `json:"last_enriched_at"`
 }
 
 func (w *Wishlist) AddItem(i *Item) error {
-	var itemLimit int
-
 	// check if item exists already
 	found := false
 	for _, item := range w.Items {
@@ -46,10 +47,6 @@ func (w *Wishlist) AddItem(i *Item) error {
 
 	if found {
 		return nil
-	}
-
-	if len(w.Items) > 10 {
-		return errors.New(fmt.Sprintf("can't have more than %d items in a wishlist", itemLimit))
 	}
 
 	w.Items = append(w.Items, i)

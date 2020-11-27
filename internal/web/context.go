@@ -6,14 +6,14 @@ import (
 	"errors"
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
-	"github.com/epiehl93/h24-notifier/config"
 	"github.com/epiehl93/h24-notifier/internal/adapter"
+	"github.com/epiehl93/h24-notifier/internal/utils"
 	"github.com/epiehl93/h24-notifier/pkg/models"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/render"
+	"github.com/spf13/viper"
 	"gopkg.in/square/go-jose.v2"
 	"gorm.io/gorm"
-	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -53,7 +53,7 @@ type ApplicationContext interface {
 }
 
 type applicationContext struct {
-	adapter.Registry
+	*adapter.Registry
 }
 
 // WishlistCtx tries to pull the wishlist object from the repository by querying with the supplied ID
@@ -66,16 +66,16 @@ func (c applicationContext) WishlistCtx(next http.Handler) http.Handler {
 		id, err := strconv.ParseUint(wishlistID, 10, 64)
 		if err != nil {
 			_ = render.Render(w, r, ErrRender(err))
-			log.Println(err)
+			utils.Log.Error(err)
 			return
 		}
 
 		wlist := &models.Wishlist{ID: id}
-		err = c.WishlistRepository.Get(wlist)
+		err = c.Wishlist.Get(wlist)
 		if err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				_ = render.Render(w, r, ErrNotFound())
-				log.Println(err)
+				utils.Log.Error(err)
 				return
 			} else {
 				_ = render.Render(w, r, ErrRender(err))
@@ -103,16 +103,31 @@ func (c applicationContext) ItemCtx(next http.Handler) http.Handler {
 			return
 		}
 
-		item, err := c.ItemRepository.GetBySKU(sku)
+		item, err := c.Item.GetBySKU(sku)
 		if err != nil {
 			// Try to fetch article from retail if not found in db
 			if errors.Is(err, gorm.ErrRecordNotFound) {
-				item, err = c.H24Connector.GetBySKU(sku)
-				if err := c.ItemRepository.Create(item); err != nil {
+				item, err = c.H24.GetBySKU(sku)
+				if err := c.Item.Create(item); err != nil {
 					_ = render.Render(w, r, ErrRender(err))
 					return
 				}
 			} else {
+				_ = render.Render(w, r, ErrRender(err))
+				return
+			}
+		}
+
+		changed, err := c.H24.EnrichItemWithRetailData(item)
+		if err != nil {
+			utils.Log.Errorf("error enriching item with retail data")
+			_ = render.Render(w, r, ErrRender(err))
+			return
+		}
+
+		if changed {
+			if err := c.Item.Update(item); err != nil {
+				utils.Log.Errorf("error saving updated item")
 				_ = render.Render(w, r, ErrRender(err))
 				return
 			}
@@ -165,7 +180,7 @@ func (c applicationContext) RetrieveAndValidateToken(token string) (*jwt.Token, 
 	jwks := &jose.JSONWebKeySet{}
 
 	// get jwks from url
-	resp, err := http.Get(config.C.Auth.JWksUrl)
+	resp, err := http.Get(viper.GetString("auth.jwksurl"))
 	defer func(resp *http.Response) {
 		_ = resp.Body.Close()
 	}(resp)
@@ -216,6 +231,6 @@ func (c applicationContext) RetrieveAndValidateToken(token string) (*jwt.Token, 
 	return verifiedToken, nil
 }
 
-func NewApplicationContext(registry adapter.Registry) ApplicationContext {
-	return applicationContext{registry}
+func NewApplicationContext(r *adapter.Registry) ApplicationContext {
+	return applicationContext{r}
 }

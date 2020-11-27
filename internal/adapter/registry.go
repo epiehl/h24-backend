@@ -2,22 +2,20 @@ package adapter
 
 import (
 	"github.com/epiehl93/h24-notifier/pkg/repository"
-	"github.com/shurcooL/graphql"
-	"gorm.io/gorm"
 )
 
 type Registry struct {
-	repository.WishlistRepository
-	repository.ItemRepository
-	repository.H24Connector
-	repository.CycleRepository
+	Wishlist repository.WishlistRepository
+	Item     repository.ItemRepository
+	H24      repository.H24Connector
+	Cycle    repository.CycleRepository
 }
 
-func NewRegistry(db *gorm.DB, gql *graphql.Client) Registry {
+func NewRegistry(wishlist repository.WishlistRepository, item repository.ItemRepository, h24 repository.H24Connector, cycle repository.CycleRepository) Registry {
 	return Registry{
-		NewWishlistRepository(db),
-		NewItemRepository(db),
-		NewH24Connector(gql),
-		NewCycleRepository(db),
+		Wishlist: wishlist,
+		Item:     item,
+		H24:      h24,
+		Cycle:    cycle,
 	}
 }

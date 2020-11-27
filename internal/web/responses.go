@@ -20,14 +20,19 @@ func (resp WishlistResponse) Render(w http.ResponseWriter, r *http.Request) erro
 
 func NewWishlistResponse(wishlist *models.Wishlist) *WishlistResponse {
 	skus := make([]uint64, wishlist.Length())
+	var itemUrl string
 
 	for index, item := range wishlist.Items {
+		if index == 0 {
+			itemUrl = item.ImageUrl
+		}
 		skus[index] = item.SKU
 	}
 
 	respList := Wishlist{
 		wishlist.ID,
 		wishlist.Name,
+		itemUrl,
 		skus,
 	}
 
@@ -35,6 +40,19 @@ func NewWishlistResponse(wishlist *models.Wishlist) *WishlistResponse {
 		respList,
 	}
 	return resp
+}
+
+func NewWishlistListResponse(w []*models.Wishlist) []render.Renderer {
+	var l []render.Renderer
+
+	// required to not have null in our response body ever
+	if len(w) == 0 {
+		l = make([]render.Renderer, 0)
+	}
+	for _, list := range w {
+		l = append(l, NewWishlistResponse(list))
+	}
+	return l
 }
 
 //  DeleteResponse contains information about the deletion process
@@ -69,9 +87,12 @@ func NewItemResponse(item *models.Item) *ItemResponse {
 		item.ID,
 		item.Name,
 		item.SKU,
+		item.ImageUrl,
+		item.RetailUrl,
 		item.RetailPrice,
 		item.RetailDiscount,
 		item.RetailDiscountPrice,
+		item.AvailableInRetail,
 		item.OutletPrice,
 		item.AvailableInOutlet,
 	}
@@ -91,15 +112,27 @@ func NewItemListResponse(list []*models.Item) []render.Renderer {
 	return respList
 }
 
-func NewWishlistListResponse(w []*models.Wishlist) []render.Renderer {
-	var l []render.Renderer
+// PaginatedItemListResponse contains response information that will be returned to the request issuer
+type PaginatedItemListResponse struct {
+	Items    []*Item `json:"items"`
+	MaxPages int64   `json:"max_pages"`
+	NumItems int64   `json:"num_items"`
+}
 
-	// required to not have null in our response body ever
-	if len(w) == 0 {
-		l = make([]render.Renderer, 0)
+func (p PaginatedItemListResponse) Render(w http.ResponseWriter, r *http.Request) error {
+	return nil
+}
+
+func NewPaginatedItemListResponse(items []*models.Item, maxPages int64, numItems int64) render.Renderer {
+	var dataItems []*Item
+	for _, item := range items {
+		newItem := &Item{}
+		newItem = newItem.FromModelItem(item)
+		dataItems = append(dataItems, newItem)
 	}
-	for _, list := range w {
-		l = append(l, NewWishlistResponse(list))
+	return PaginatedItemListResponse{
+		dataItems,
+		maxPages,
+		numItems,
 	}
-	return l
 }

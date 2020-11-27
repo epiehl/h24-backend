@@ -11,6 +11,20 @@ type ItemRepository struct {
 	db *gorm.DB
 }
 
+func (i ItemRepository) SearchInName(name string) ([]*models.Item, error) {
+	var items []*models.Item
+
+	tx := i.db.Where("name LIKE ?", "%"+name+"%").
+		Where("available_in_outlet = true").
+		Limit(10).
+		Find(&items)
+
+	if tx.Error != nil {
+		return nil, tx.Error
+	}
+	return items, nil
+}
+
 func (i ItemRepository) FindAvailableInOutlet() ([]*models.Item, error) {
 	var items []*models.Item
 
@@ -79,23 +93,41 @@ func (i ItemRepository) GetAll() ([]*models.Item, error) {
 	return items, nil
 }
 
-func (i ItemRepository) GetAllPaginated(limit int, page int) ([]*models.Item, error) {
+func (i ItemRepository) GetAllPaginated(limit int, page int, availableInOutlet *bool) ([]*models.Item, int64, int64, error) {
 	var items []*models.Item
+	var count int64
+	var availableInOutletFilter []bool
+
+	if availableInOutlet == nil {
+		availableInOutletFilter = []bool{true, false}
+	} else {
+		availableInOutletFilter = []bool{*availableInOutlet}
+	}
 
 	if limit > 100 {
 		limit = 100
 	}
 
 	offset := (page - 1) * limit
-	tx := i.db.Scopes(func(db *gorm.DB) *gorm.DB {
+	if tx := i.db.Scopes(func(db *gorm.DB) *gorm.DB {
 		return db.Offset(offset).Limit(limit)
-	}).Find(&items)
-
-	if tx.Error != nil {
-		return nil, tx.Error
+	}).Where("available_in_outlet in ?", availableInOutletFilter).Find(&items); tx.Error != nil {
+		if tx.Error != nil {
+			return nil, 0, 0, tx.Error
+		}
 	}
 
-	return items, nil
+	if tx := i.db.Model(&models.Item{}).
+		Where("available_in_outlet in ?", availableInOutletFilter).Count(&count); tx.Error != nil {
+		return nil, 0, 0, tx.Error
+	}
+
+	// calculate maxPages based on amount of items found and limit
+	overFlow := count % int64(limit)
+	maxPages := (count - overFlow) / int64(limit)
+	maxPages += 1
+
+	return items, maxPages, count, nil
 }
 
 func (i ItemRepository) Get(item *models.Item) error {

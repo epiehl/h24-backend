@@ -11,13 +11,13 @@ type HealthController interface {
 }
 
 type healthController struct {
-	adapter.Registry
+	*adapter.Registry
 }
 
 func (h healthController) GetHealth(w http.ResponseWriter, r *http.Request) {
 	render.Status(r, http.StatusOK)
 }
 
-func NewHealthController(r adapter.Registry) HealthController {
+func NewHealthController(r *adapter.Registry) HealthController {
 	return &healthController{r}
 }

@@ -185,3 +185,4 @@ bin/*
 # config
 
 config/config.yml
+vendor
