@@ -1,0 +1,34 @@
+database:
+  user: h24
+  password: "h123#"
+  host: localhost
+  port: 5432
+  dbname: h24
+  sslmode: disable
+  timezone: Europe/Berlin
+
+h24connector:
+  endpoint: https://www.home24.de/graphql
+
+server:
+  host: localhost
+  scheme: http
+  port: 3000
+  authentication:
+    google:
+      key: ""
+      secret: ""
+      callbackurl: ""
+    cognito:
+      url: ""
+      callbackurl: ""
+      poolid: ""
+      clientid: ""
+      clientsecret: ""
+      tokenendpoint: ""
+aggregator:
+  outlet:
+    endpoint:
+      scheme: https
+      host: sortiment.home24-outlet.de
+      location: hannover

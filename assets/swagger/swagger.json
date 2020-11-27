@@ -1,0 +1,423 @@
+{
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "schemes": [
+    "http",
+    "https"
+  ],
+  "swagger": "2.0",
+  "info": {
+    "description": "This is the h24-notifier api\nIt is written in golang",
+    "title": "H24-Notifier API.",
+    "termsOfService": "there are no TOS at this moment, use at your own risk we take no responsibility",
+    "contact": {
+      "name": "Erik Piehl",
+      "email": "erik.piehl93@gmail.com"
+    },
+    "license": {
+      "name": "none"
+    },
+    "version": "0.0.2"
+  },
+  "host": "localhost:3000",
+  "basePath": "/api/v1",
+  "paths": {
+    "/item": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "summary": "List items",
+        "operationId": "ListItems",
+        "parameters": [
+          {
+            "type": "integer",
+            "format": "int64",
+            "default": 10,
+            "x-go-name": "Limit",
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "type": "integer",
+            "format": "int64",
+            "default": 1,
+            "x-go-name": "Page",
+            "name": "page",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "item response",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Item"
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/responses/ErrResponse"
+          }
+        }
+      }
+    },
+    "/item/{sku}": {
+      "get": {
+        "summary": "Get an item by SKU",
+        "operationId": "GetItem",
+        "parameters": [
+          {
+            "type": "integer",
+            "format": "uint64",
+            "x-go-name": "SKU",
+            "name": "sku",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/ItemResponse"
+          },
+          "default": {
+            "$ref": "#/responses/ErrResponse"
+          }
+        }
+      }
+    },
+    "/wishlist": {
+      "get": {
+        "summary": "Gets all wishlists associated with the user",
+        "operationId": "GetAllWishlists",
+        "responses": {
+          "200": {
+            "description": "wishlist response",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Wishlist"
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/responses/ErrResponse"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a new wishlist",
+        "operationId": "CreateWishlist",
+        "parameters": [
+          {
+            "description": "wishlist parameter",
+            "name": "wishlist",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/CreateWishlistRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/WishlistResponse"
+          },
+          "default": {
+            "$ref": "#/responses/ErrResponse"
+          }
+        }
+      }
+    },
+    "/wishlist/{id}": {
+      "get": {
+        "summary": "Get a wishlist by ID",
+        "operationId": "GetWishlist",
+        "parameters": [
+          {
+            "type": "integer",
+            "format": "uint64",
+            "x-go-name": "ID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/WishlistResponse"
+          },
+          "default": {
+            "$ref": "#/responses/ErrResponse"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a wishlist by ID",
+        "operationId": "DeleteWishlist",
+        "parameters": [
+          {
+            "type": "integer",
+            "format": "uint64",
+            "x-go-name": "ID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/DeleteResponse"
+          },
+          "default": {
+            "$ref": "#/responses/ErrResponse"
+          }
+        }
+      }
+    },
+    "/wishlist/{id}/item/{sku}": {
+      "post": {
+        "summary": "Adds an item to our wishlist",
+        "operationId": "AddItemToWishlist",
+        "parameters": [
+          {
+            "type": "integer",
+            "format": "uint64",
+            "x-go-name": "ID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "integer",
+            "format": "uint64",
+            "x-go-name": "SKU",
+            "name": "sku",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/WishlistResponse"
+          },
+          "default": {
+            "$ref": "#/responses/ErrResponse"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete an item to our wishlist",
+        "operationId": "DeleteItemFromWishlist",
+        "parameters": [
+          {
+            "type": "integer",
+            "format": "uint64",
+            "x-go-name": "ID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "integer",
+            "format": "uint64",
+            "x-go-name": "SKU",
+            "name": "sku",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/WishlistResponse"
+          },
+          "default": {
+            "$ref": "#/responses/ErrResponse"
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "CreateWishlistRequest": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "x-go-name": "Name"
+        }
+      },
+      "x-go-package": "github.com/epiehl93/h24-notifier/internal/web"
+    },
+    "Item": {
+      "description": "Item is a json representation of an item",
+      "type": "object",
+      "properties": {
+        "available_in_outlet": {
+          "type": "boolean",
+          "x-go-name": "AvailableInOutlet"
+        },
+        "id": {
+          "type": "integer",
+          "format": "uint64",
+          "x-go-name": "ID"
+        },
+        "name": {
+          "type": "string",
+          "x-go-name": "Name"
+        },
+        "outlet_price": {
+          "type": "number",
+          "format": "double",
+          "x-go-name": "OutletPrice"
+        },
+        "retail_discount": {
+          "type": "number",
+          "format": "double",
+          "x-go-name": "RetailDiscount"
+        },
+        "retail_discount_price": {
+          "type": "number",
+          "format": "double",
+          "x-go-name": "RetailDiscountPrice"
+        },
+        "retail_price": {
+          "type": "number",
+          "format": "double",
+          "x-go-name": "RetailPrice"
+        },
+        "sku": {
+          "type": "integer",
+          "format": "uint64",
+          "x-go-name": "SKU"
+        }
+      },
+      "x-go-package": "github.com/epiehl93/h24-notifier/internal/web"
+    },
+    "Wishlist": {
+      "description": "Wishlist is a json representation of a wishlist",
+      "type": "object",
+      "properties": {
+        "id": {
+          "description": "ID is the unique id of the wishlist",
+          "type": "integer",
+          "format": "uint64",
+          "x-go-name": "ID"
+        },
+        "item_skus": {
+          "description": "Items added to this wishlist",
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "uint64"
+          },
+          "x-go-name": "ItemSkus"
+        },
+        "name": {
+          "description": "Name for the wishlist",
+          "type": "string",
+          "x-go-name": "Name"
+        }
+      },
+      "x-go-package": "github.com/epiehl93/h24-notifier/internal/web"
+    }
+  },
+  "responses": {
+    "DeleteResponse": {
+      "description": "DeleteResponse contains information about the deletion process"
+    },
+    "ErrResponse": {
+      "description": "ErrResponse is a generic error message that will return information about the thrown error",
+      "headers": {
+        "code": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "error": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        }
+      }
+    },
+    "ItemResponse": {
+      "description": "ItemResponse contains response information that will be returned to the request issuer",
+      "headers": {
+        "available_in_outlet": {
+          "type": "boolean"
+        },
+        "id": {
+          "type": "integer",
+          "format": "uint64"
+        },
+        "name": {
+          "type": "string"
+        },
+        "outlet_price": {
+          "type": "number",
+          "format": "double"
+        },
+        "retail_discount": {
+          "type": "number",
+          "format": "double"
+        },
+        "retail_discount_price": {
+          "type": "number",
+          "format": "double"
+        },
+        "retail_price": {
+          "type": "number",
+          "format": "double"
+        },
+        "sku": {
+          "type": "integer",
+          "format": "uint64"
+        }
+      }
+    },
+    "WishlistResponse": {
+      "description": "WishlistResponse contains response information that will be returned to the request issuer",
+      "headers": {
+        "id": {
+          "type": "integer",
+          "format": "uint64",
+          "description": "ID is the unique id of the wishlist"
+        },
+        "item_skus": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "uint64"
+          },
+          "description": "Items added to this wishlist"
+        },
+        "name": {
+          "type": "string",
+          "description": "Name for the wishlist"
+        }
+      }
+    }
+  },
+  "securityDefinitions": {
+    "Bearer": {
+      "type": "apiKey",
+      "name": "Authorization",
+      "in": "header"
+    }
+  },
+  "security": [
+    {
+      "Bearer": [
+        "[]"
+      ]
+    }
+  ]
+}
