@@ -9,12 +9,7 @@ phases:
   build:
     commands:
       - echo Build started on `date`
-      - echo Getting packages
-      - go mod vendor
-      - echo Compiling the Go code...
-      - go build cmd/server
-      - go build cmd/notificator
-      - go build cmd/aggregator
+      - docker build -f deploy.Dockerfile
   post_build:
     commands:
       - echo Build completed on `date`
