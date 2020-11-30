@@ -8,7 +8,7 @@ phases:
       - echo GOROOT - $GOROOT
   build:
     commands:
-      - docker build -f deploy.Dockerfile -t 942928664695.dkr.ecr.eu-central-1.amazonaws.com/h24-backend:CODEBUILD_SOURCE_VERSION-latest .
+      - docker build -f deploy.Dockerfile -t 942928664695.dkr.ecr.eu-central-1.amazonaws.com/h24-backend:$CODEBUILD_SOURCE_VERSION-latest .
   post_build:
     commands:
-      - docker push 942928664695.dkr.ecr.eu-central-1.amazonaws.com/h24-backend:CODEBUILD_SOURCE_VERSION-latest
+      - docker push 942928664695.dkr.ecr.eu-central-1.amazonaws.com/h24-backend:$CODEBUILD_SOURCE_VERSION-latest
