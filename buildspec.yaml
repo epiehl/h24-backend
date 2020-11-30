@@ -10,7 +10,7 @@ phases:
     commands:
       - echo Build started on `date`
       - echo Getting packages
-      - go get ./...
+      - go mod vendor
       - echo Compiling the Go code...
       - go build cmd/server
       - go build cmd/notificator
