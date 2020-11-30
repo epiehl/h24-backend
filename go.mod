@@ -12,6 +12,7 @@ require (
 	github.com/gorilla/sessions v1.1.1
 	github.com/markbates/goth v1.65.0
 	github.com/shurcooL/graphql v0.0.0-20200928012149-18c5c3165e3a
+	github.com/spf13/cobra v1.1.1
 	github.com/spf13/viper v1.7.1
 	github.com/stretchr/testify v1.5.1
 	github.com/swaggo/http-swagger v0.0.0-20200308142732-58ac5e232fba

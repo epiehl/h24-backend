@@ -5,7 +5,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	cognito "github.com/aws/aws-sdk-go/service/cognitoidentityprovider"
 	"github.com/aws/aws-sdk-go/service/ses"
-	"github.com/epiehl93/h24-notifier/config"
+	"github.com/spf13/viper"
 )
 
 func NewCognitoClient() *cognito.CognitoIdentityProvider {
@@ -18,5 +18,5 @@ func NewSESClient() *ses.SES {
 }
 
 func NewSession() *session.Session {
-	return session.Must(session.NewSession(aws.NewConfig().WithRegion(config.C.AWS.Region)))
+	return session.Must(session.NewSession(aws.NewConfig().WithRegion(viper.GetString("aws.region"))))
 }

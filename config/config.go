@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/davecgh/go-spew/spew"
 
@@ -61,6 +62,9 @@ func ReadConfig() {
 	viper.SetConfigName("config")
 	viper.SetConfigType("yml")
 	viper.AddConfigPath(filepath.Join("$GOPATH", "src", "github.com", "epiehl93", "h24-notifier", "config"))
+	viper.SetEnvPrefix("H24")
+	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+
 	viper.AutomaticEnv()
 
 	if err := viper.ReadInConfig(); err != nil {
