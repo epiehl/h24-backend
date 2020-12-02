@@ -1,6 +1,7 @@
 package config
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -68,8 +69,11 @@ func ReadConfig() {
 	viper.AutomaticEnv()
 
 	if err := viper.ReadInConfig(); err != nil {
-		fmt.Println(err)
-		log.Fatalln(err)
+		if errors.Is(err, viper.ConfigFileNotFoundError{}) {
+			fmt.Println(err)
+		} else {
+			log.Fatalln(err)
+		}
 	}
 
 	if err := viper.Unmarshal(&Config); err != nil {
