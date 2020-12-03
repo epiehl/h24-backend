@@ -1,6 +1,7 @@
 package config
 
 import (
+	"github.com/davecgh/go-spew/spew"
 	"github.com/epiehl93/h24-notifier/internal/utils"
 	"os"
 	"path/filepath"
@@ -76,4 +77,6 @@ func ReadConfig() {
 		utils.Log.Error(err)
 		os.Exit(1)
 	}
+
+	spew.Dump(C)
 }
