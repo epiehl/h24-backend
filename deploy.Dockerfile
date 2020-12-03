@@ -1,4 +1,4 @@
-FROM golang:1.15-buster as build
+FROM gcr.io/gcp-runtimes/go1-builder:1.15 as builder
 
 WORKDIR /go/src/app
 ADD . /go/src/app
