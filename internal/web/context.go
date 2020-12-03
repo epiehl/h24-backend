@@ -6,12 +6,12 @@ import (
 	"errors"
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
-	"github.com/epiehl93/h24-notifier/config"
 	"github.com/epiehl93/h24-notifier/internal/adapter"
 	"github.com/epiehl93/h24-notifier/internal/utils"
 	"github.com/epiehl93/h24-notifier/pkg/models"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/render"
+	"github.com/spf13/viper"
 	"gopkg.in/square/go-jose.v2"
 	"gorm.io/gorm"
 	"net/http"
@@ -165,7 +165,7 @@ func (c applicationContext) RetrieveAndValidateToken(token string) (*jwt.Token, 
 	jwks := &jose.JSONWebKeySet{}
 
 	// get jwks from url
-	resp, err := http.Get(config.C.Auth.JWksUrl)
+	resp, err := http.Get(viper.GetString("auth.jwksurl"))
 	defer func(resp *http.Response) {
 		_ = resp.Body.Close()
 	}(resp)

@@ -4,10 +4,10 @@ import (
 	"errors"
 	"fmt"
 	"github.com/PuerkitoBio/goquery"
-	"github.com/epiehl93/h24-notifier/config"
 	"github.com/epiehl93/h24-notifier/internal/adapter"
 	"github.com/epiehl93/h24-notifier/internal/utils"
 	"github.com/epiehl93/h24-notifier/pkg/models"
+	"github.com/spf13/viper"
 	"gorm.io/gorm"
 	"net/http"
 	"regexp"
@@ -73,9 +73,9 @@ func (o outletAggregator) AggregateItems() error {
 	for !done {
 
 		url := fmt.Sprintf("%s://%s/%s?p=%d&is_ajax=1",
-			config.C.Aggregator.Outlet.Endpoint.Scheme,
-			config.C.Aggregator.Outlet.Endpoint.Host,
-			config.C.Aggregator.Outlet.Endpoint.Location,
+			viper.GetString("aggregator.outlet.endpoint.scheme"),
+			viper.GetString("aggregator.outlet.endpoint.host"),
+			viper.GetString("aggregator.outlet.endpoint.location"),
 			siteIndex)
 
 		utils.Log.Infof("Calling url %s \n", url)

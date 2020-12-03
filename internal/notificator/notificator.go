@@ -6,11 +6,11 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	cognito "github.com/aws/aws-sdk-go/service/cognitoidentityprovider"
 	"github.com/aws/aws-sdk-go/service/ses"
-	"github.com/epiehl93/h24-notifier/config"
 	"github.com/epiehl93/h24-notifier/internal/adapter"
 	"github.com/epiehl93/h24-notifier/internal/utils"
 	"github.com/epiehl93/h24-notifier/pkg/models"
 	"github.com/shurcooL/graphql"
+	"github.com/spf13/viper"
 	"gorm.io/gorm"
 	"time"
 )
@@ -74,7 +74,7 @@ func (n notificator) Run() error {
 		}
 
 		content := "Hey,\n\nthe following NEW items are available in the outlet:\n\n" + FormatItems(items)
-		err = SendEmail(config.C.AWS.SES.From, email, "New items available in outlet", content)
+		err = SendEmail(viper.GetString("aws.ses.from"), email, "New items available in outlet", content)
 		if err != nil {
 			utils.Log.Error(err)
 		}
@@ -135,7 +135,7 @@ func GetUserEmail(sub string) (string, error) {
 		cognitoClient = utils.NewCognitoClient()
 	}
 	input := &cognito.ListUsersInput{
-		UserPoolId: &config.C.Cognito.PoolID,
+		UserPoolId: aws.String(viper.GetString("cognito.poolid")),
 		Filter:     aws.String(fmt.Sprintf("sub = \"%s\"", sub)),
 	}
 

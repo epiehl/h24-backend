@@ -2,7 +2,6 @@ package web
 
 import (
 	"fmt"
-	"github.com/epiehl93/h24-notifier/config"
 	"github.com/epiehl93/h24-notifier/internal/adapter"
 	"github.com/epiehl93/h24-notifier/internal/utils"
 	"github.com/go-chi/chi"
@@ -11,6 +10,7 @@ import (
 	"github.com/gorilla/sessions"
 	"github.com/markbates/goth/gothic"
 	"github.com/shurcooL/graphql"
+	"github.com/spf13/viper"
 	httpSwagger "github.com/swaggo/http-swagger"
 	"gorm.io/gorm"
 	"log"
@@ -77,7 +77,7 @@ func (a app) Run() error {
 		})
 	})
 
-	if !config.C.Server.Production {
+	if !viper.GetBool("server.production") {
 		// Serve swagger.json
 		var cwd string
 		var err error
@@ -99,13 +99,21 @@ func (a app) Run() error {
 		})
 
 		a.router.Get("/swagger/*", httpSwagger.Handler(
-			httpSwagger.URL("http://"+config.C.Server.Host+":"+config.C.Server.Port+"/swagger.json"),
+			httpSwagger.URL("http://"+viper.GetString("server.host")+":"+viper.GetString("server.port")+"/swagger.json"),
 		))
 	}
 
-	utils.Log.Infof("starting server...")
-	utils.Log.Infof("server running at %s:%s", config.C.Server.Host, config.C.Server.Port)
-	err := http.ListenAndServe(fmt.Sprintf("%s:%s", config.C.Server.Host, config.C.Server.Port), a.router)
+	utils.Log.Infof("running server at %s:%s",
+		viper.GetString("server.host"),
+		viper.GetString("server.port"),
+	)
+
+	err := http.ListenAndServe(fmt.Sprintf("%s:%s",
+		viper.GetString("server.host"),
+		viper.GetString("server.port")),
+		a.router,
+	)
+
 	if err != nil {
 		return err
 	}

@@ -7,6 +7,7 @@ import (
 	"github.com/epiehl93/h24-notifier/internal/utils"
 	"github.com/shurcooL/graphql"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 var RunAggregator = &cobra.Command{
@@ -20,7 +21,7 @@ var RunAggregator = &cobra.Command{
 			return err
 		}
 
-		gql := graphql.NewClient(config.C.H24Connector.Endpoint, nil)
+		gql := graphql.NewClient(viper.GetString("h24connector.endpoint"), nil)
 
 		if err := utils.MigrateTables(db); err != nil {
 			return err
