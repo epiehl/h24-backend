@@ -3,15 +3,16 @@ module github.com/epiehl93/h24-notifier
 go 1.15
 
 require (
+	github.com/766b/chi-logger v0.0.0-20180309043024-d2679d398ce4
 	github.com/PuerkitoBio/goquery v1.6.0
 	github.com/aws/aws-sdk-go v1.35.23
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/go-chi/chi v4.1.2+incompatible
 	github.com/go-chi/render v1.0.1
-	github.com/gorilla/sessions v1.1.1
+	github.com/gorilla/sessions v1.1.1 // indirect
 	github.com/hypnoglow/gormzap v0.3.0 // indirect
-	github.com/markbates/goth v1.65.0
+	github.com/markbates/goth v1.65.0 // indirect
 	github.com/shurcooL/graphql v0.0.0-20200928012149-18c5c3165e3a
 	github.com/spf13/cobra v1.1.1
 	github.com/spf13/viper v1.7.1

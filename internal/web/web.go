@@ -2,13 +2,12 @@ package web
 
 import (
 	"fmt"
+	"github.com/766b/chi-logger"
 	"github.com/epiehl93/h24-notifier/internal/adapter"
 	"github.com/epiehl93/h24-notifier/internal/utils"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/render"
-	"github.com/gorilla/sessions"
-	"github.com/markbates/goth/gothic"
 	"github.com/shurcooL/graphql"
 	"github.com/spf13/viper"
 	httpSwagger "github.com/swaggo/http-swagger"
@@ -34,14 +33,11 @@ type app struct {
 func (a app) Run() error {
 	APIVersion = "0.0.2"
 
-	utils.Log.Infof("configuring auth...")
-
-	gothic.Store = sessions.NewCookieStore([]byte("mysuperhardcodedsecret"))
 	utils.Log.Infof("adding middlewares...")
 
 	a.router.Use(middleware.RequestID)
 	a.router.Use(middleware.RealIP)
-	a.router.Use(middleware.Logger)
+	a.router.Use(chilogger.NewZapMiddleware("router", utils.LLogger))
 	a.router.Use(middleware.Recoverer)
 
 	utils.Log.Infof("adding routes...")
