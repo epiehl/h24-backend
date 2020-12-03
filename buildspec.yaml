@@ -1,6 +1,10 @@
 version: 0.2
 
 phases:
+  pre_build:
+    commands:
+      - DOCKER_PASS=$(aws ecr get-login-password --region eu-central-1)
+      - docker login -u AWS -p $DOCKER_PASS 942928664695.dkr.ecr.eu-central-1.amazonaws.com
   install:
     commands:
       - echo CODEBUILD_SRC_DIR - $CODEBUILD_SRC_DIR
@@ -11,6 +15,4 @@ phases:
       - docker build -f deploy.Dockerfile -t 942928664695.dkr.ecr.eu-central-1.amazonaws.com/h24-backend:$CODEBUILD_SOURCE_VERSION-latest .
   post_build:
     commands:
-      - DOCKER_PASS=$(aws ecr get-login-password --region eu-central-1)
-      - docker login -u AWS -p $DOCKER_PASS 942928664695.dkr.ecr.eu-central-1.amazonaws.com
       - docker push 942928664695.dkr.ecr.eu-central-1.amazonaws.com/h24-backend:$CODEBUILD_SOURCE_VERSION-latest
