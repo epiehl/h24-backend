@@ -1,4 +1,4 @@
-FROM gcr.io/gcp-runtimes/go1-builder:1.15 as builder
+FROM 942928664695.dkr.ecr.eu-central-1.amazonaws.com/golang:1.15-buster as build
 
 WORKDIR /go/src/app
 ADD . /go/src/app
