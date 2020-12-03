@@ -32,7 +32,6 @@ func main() {
 	if err != nil {
 		utils.Log.Panic(err)
 	}
-	defer utils.DeferLoggerClose()
 	if err := rootCmd.Execute(); err != nil {
 		utils.Log.Error(err)
 		os.Exit(1)

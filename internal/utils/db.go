@@ -6,6 +6,7 @@ import (
 	"github.com/spf13/viper"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"moul.io/zapgorm2"
 )
 
 func SetupDB() (*gorm.DB, error) {
@@ -20,7 +21,9 @@ func SetupDB() (*gorm.DB, error) {
 		viper.GetString("database.sslmode"),
 		viper.GetString("database.timezone"))
 
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	logger := zapgorm2.New(LLogger)
+
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{Logger: logger})
 	if err != nil {
 		return nil, err
 	}
