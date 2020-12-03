@@ -1,8 +1,8 @@
 package main
 
 import (
-	"fmt"
 	"github.com/epiehl93/h24-notifier/cmd/commands"
+	"github.com/epiehl93/h24-notifier/internal/utils"
 	"github.com/spf13/cobra"
 	"os"
 )
@@ -28,8 +28,13 @@ func init() {
 }
 
 func main() {
+	err := utils.InitLogger()
+	if err != nil {
+		utils.Log.Panic(err)
+	}
+	defer utils.DeferLoggerClose()
 	if err := rootCmd.Execute(); err != nil {
-		fmt.Fprintln(os.Stderr, err)
+		utils.Log.Error(err)
 		os.Exit(1)
 	}
 }

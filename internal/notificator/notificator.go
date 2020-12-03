@@ -12,7 +12,6 @@ import (
 	"github.com/epiehl93/h24-notifier/pkg/models"
 	"github.com/shurcooL/graphql"
 	"gorm.io/gorm"
-	"log"
 	"time"
 )
 
@@ -77,7 +76,7 @@ func (n notificator) Run() error {
 		content := "Hey,\n\nthe following NEW items are available in the outlet:\n\n" + FormatItems(items)
 		err = SendEmail(config.C.AWS.SES.From, email, "New items available in outlet", content)
 		if err != nil {
-			log.Print(err)
+			utils.Log.Error(err)
 		}
 
 	}
@@ -126,7 +125,7 @@ func SendEmail(from string, to string, subject string, body string) error {
 		return err
 	}
 
-	log.Printf("email to %s succesfully sent: messageID: %s\n", to, *result.MessageId)
+	utils.Log.Infof("email to %s succesfully sent: messageID: %s\n", to, *result.MessageId)
 
 	return nil
 }

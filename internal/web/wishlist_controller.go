@@ -3,9 +3,9 @@ package web
 import (
 	"errors"
 	"github.com/epiehl93/h24-notifier/internal/adapter"
+	"github.com/epiehl93/h24-notifier/internal/utils"
 	"github.com/epiehl93/h24-notifier/pkg/models"
 	"github.com/go-chi/render"
-	"log"
 	"net/http"
 )
 
@@ -86,7 +86,7 @@ func (c wishlistController) AddItemToWishlist(w http.ResponseWriter, r *http.Req
 	render.Status(r, http.StatusCreated)
 	err := render.Render(w, r, NewWishlistResponse(list))
 	if err != nil {
-		log.Println(err)
+		utils.Log.Error(err)
 	}
 }
 
@@ -120,7 +120,7 @@ func (c wishlistController) DeleteItemFromWishlist(w http.ResponseWriter, r *htt
 
 	err := render.Render(w, r, NewWishlistResponse(list))
 	if err != nil {
-		log.Println(err)
+		utils.Log.Error(err)
 	}
 }
 
@@ -150,7 +150,7 @@ func (c wishlistController) CreateWishlist(w http.ResponseWriter, r *http.Reques
 
 	list := &models.Wishlist{Name: data.Name, UserSub: userUUID}
 	if err := c.WishlistRepository.Create(list); err != nil {
-		log.Println(err)
+		utils.Log.Error(err)
 		_ = render.Render(w, r, ErrInternalServerError(err))
 		return
 	}

@@ -3,10 +3,10 @@ package adapter
 import (
 	"context"
 	"fmt"
+	"github.com/epiehl93/h24-notifier/internal/utils"
 	"github.com/epiehl93/h24-notifier/pkg/models"
 	"github.com/epiehl93/h24-notifier/pkg/repository"
 	"github.com/shurcooL/graphql"
-	"log"
 )
 
 type H24Connector struct {
@@ -15,7 +15,7 @@ type H24Connector struct {
 
 func (h H24Connector) GetBySKU(sku uint64) (*models.Item, error) {
 	stringSku := fmt.Sprintf("%018d", sku)
-	log.Printf("Fetching sku %s from retail", stringSku)
+	utils.Log.Infof("Fetching sku %s from retail", stringSku)
 	variables := map[string]interface{}{
 		"search_sku": graphql.String(stringSku),
 	}

@@ -8,12 +8,12 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/epiehl93/h24-notifier/config"
 	"github.com/epiehl93/h24-notifier/internal/adapter"
+	"github.com/epiehl93/h24-notifier/internal/utils"
 	"github.com/epiehl93/h24-notifier/pkg/models"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/render"
 	"gopkg.in/square/go-jose.v2"
 	"gorm.io/gorm"
-	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -66,7 +66,7 @@ func (c applicationContext) WishlistCtx(next http.Handler) http.Handler {
 		id, err := strconv.ParseUint(wishlistID, 10, 64)
 		if err != nil {
 			_ = render.Render(w, r, ErrRender(err))
-			log.Println(err)
+			utils.Log.Error(err)
 			return
 		}
 
@@ -75,7 +75,7 @@ func (c applicationContext) WishlistCtx(next http.Handler) http.Handler {
 		if err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				_ = render.Render(w, r, ErrNotFound())
-				log.Println(err)
+				utils.Log.Error(err)
 				return
 			} else {
 				_ = render.Render(w, r, ErrRender(err))

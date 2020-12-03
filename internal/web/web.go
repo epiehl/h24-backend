@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/epiehl93/h24-notifier/config"
 	"github.com/epiehl93/h24-notifier/internal/adapter"
+	"github.com/epiehl93/h24-notifier/internal/utils"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/render"
@@ -33,17 +34,17 @@ type app struct {
 func (a app) Run() error {
 	APIVersion = "0.0.2"
 
-	log.Println("configuring auth...")
+	utils.Log.Infof("configuring auth...")
 
 	gothic.Store = sessions.NewCookieStore([]byte("mysuperhardcodedsecret"))
-	log.Println("adding middlewares...")
+	utils.Log.Infof("adding middlewares...")
 
 	a.router.Use(middleware.RequestID)
 	a.router.Use(middleware.RealIP)
 	a.router.Use(middleware.Logger)
 	a.router.Use(middleware.Recoverer)
 
-	log.Println("adding routes...")
+	utils.Log.Infof("adding routes...")
 	// Health route
 	a.router.Get("/health", a.GetHealth)
 
@@ -86,11 +87,10 @@ func (a app) Run() error {
 
 		rootDocs := cwd + "/assets/swagger"
 		fs := http.FileServer(http.Dir(rootDocs))
-		fmt.Println(fs)
 
 		a.router.Get("/swagger.json", func(w http.ResponseWriter, r *http.Request) {
 			if _, err := os.Stat(rootDocs + r.RequestURI); err != nil {
-				fmt.Println(err)
+				utils.Log.Error(err)
 				render.Status(r, 404)
 				return
 			} else {
@@ -103,13 +103,12 @@ func (a app) Run() error {
 		))
 	}
 
-	log.Println("starting server...")
+	utils.Log.Infof("starting server...")
+	utils.Log.Infof("server running at %s:%s", config.C.Server.Host, config.C.Server.Port)
 	err := http.ListenAndServe(fmt.Sprintf("%s:%s", config.C.Server.Host, config.C.Server.Port), a.router)
 	if err != nil {
 		return err
 	}
-
-	log.Println("done...")
 	return nil
 }
 

@@ -6,9 +6,9 @@ import (
 	"github.com/PuerkitoBio/goquery"
 	"github.com/epiehl93/h24-notifier/config"
 	"github.com/epiehl93/h24-notifier/internal/adapter"
+	"github.com/epiehl93/h24-notifier/internal/utils"
 	"github.com/epiehl93/h24-notifier/pkg/models"
 	"gorm.io/gorm"
-	"log"
 	"net/http"
 	"regexp"
 	"strconv"
@@ -39,7 +39,7 @@ func (o outletAggregator) CheckUnavailability() error {
 	for _, item := range items {
 		// Check if it is older than last cycle
 		if item.LastAggregatedAt.Before(lastCycle.At) {
-			log.Printf("Item with sku %d: %s older than %s\n", item.SKU, item.LastAggregatedAt, lastCycle.At)
+			utils.Log.Infof("Item with sku %d: %s older than %s\n", item.SKU, item.LastAggregatedAt, lastCycle.At)
 			err := o.ItemRepository.SetUnavailableInOutlet(item)
 			if err != nil {
 				return err
@@ -78,7 +78,7 @@ func (o outletAggregator) AggregateItems() error {
 			config.C.Aggregator.Outlet.Endpoint.Location,
 			siteIndex)
 
-		log.Printf("Calling url %s \n", url)
+		utils.Log.Infof("Calling url %s \n", url)
 
 		res, err := http.Get(url)
 		if err != nil {
@@ -97,7 +97,7 @@ func (o outletAggregator) AggregateItems() error {
 
 		selection := doc.Find("div.product-item")
 		if selection.Length() == 0 {
-			log.Println("Response body seems empty. Finishing")
+			utils.Log.Infof("Response body seems empty. Finishing")
 			done = true
 			break
 		}
@@ -117,9 +117,9 @@ func (o outletAggregator) AggregateItems() error {
 
 func (o outletAggregator) ProcessDocument(i int, selection *goquery.Selection) {
 	if err := o.ExtractItemFromSelection(selection); err != nil {
-		log.Panicln(err)
+		utils.Log.Panic(err)
 	}
-	log.Println("Successfully extracted data")
+	utils.Log.Infof("Successfully extracted data")
 }
 
 func (o outletAggregator) ExtractItemFromSelection(selection *goquery.Selection) error {
@@ -165,7 +165,7 @@ func (o outletAggregator) ExtractItemFromSelection(selection *goquery.Selection)
 	newItem, err := o.Registry.ItemRepository.GetBySKU(eSku)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			fmt.Printf("Item with sku %d not found, creating\n", eSku)
+			utils.Log.Infof("Item with sku %d not found, creating\n", eSku)
 			itemExists = false
 		} else {
 			return err
@@ -227,7 +227,7 @@ func (o outletAggregator) ReturnErrorAndSetFailedCycle(err error, at time.Time) 
 	if e != nil {
 		return e
 	}
-	log.Print("Aggregation was not successful")
+	utils.Log.Infof("Aggregation was not successful")
 	return err
 }
 
@@ -236,7 +236,7 @@ func (o outletAggregator) SetSuccessfulCycle(at time.Time) error {
 	if err != nil {
 		return err
 	}
-	log.Println("Aggregation was successful")
+	utils.Log.Infof("Aggregation was successful")
 	return nil
 }
 

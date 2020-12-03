@@ -16,6 +16,7 @@ require (
 	github.com/spf13/viper v1.7.1
 	github.com/stretchr/testify v1.5.1
 	github.com/swaggo/http-swagger v0.0.0-20200308142732-58ac5e232fba
+	go.uber.org/zap v1.10.0
 	gopkg.in/square/go-jose.v2 v2.5.1
 	gorm.io/driver/postgres v1.0.2
 	gorm.io/driver/sqlite v1.1.3
