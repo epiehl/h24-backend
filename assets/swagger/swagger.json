@@ -269,6 +269,10 @@
           "format": "uint64",
           "x-go-name": "ID"
         },
+        "image_url": {
+          "type": "string",
+          "x-go-name": "ImageUrl"
+        },
         "name": {
           "type": "string",
           "x-go-name": "Name"
@@ -293,6 +297,10 @@
           "format": "double",
           "x-go-name": "RetailPrice"
         },
+        "retail_url": {
+          "type": "string",
+          "x-go-name": "RetailUrl"
+        },
         "sku": {
           "type": "integer",
           "format": "uint64",
@@ -305,6 +313,10 @@
       "description": "Wishlist is a json representation of a wishlist",
       "type": "object",
       "properties": {
+        "example_image": {
+          "type": "string",
+          "x-go-name": "ExampleImage"
+        },
         "id": {
           "description": "ID is the unique id of the wishlist",
           "type": "integer",
@@ -358,6 +370,9 @@
           "type": "integer",
           "format": "uint64"
         },
+        "image_url": {
+          "type": "string"
+        },
         "name": {
           "type": "string"
         },
@@ -377,6 +392,9 @@
           "type": "number",
           "format": "double"
         },
+        "retail_url": {
+          "type": "string"
+        },
         "sku": {
           "type": "integer",
           "format": "uint64"
@@ -386,6 +404,9 @@
     "WishlistResponse": {
       "description": "WishlistResponse contains response information that will be returned to the request issuer",
       "headers": {
+        "example_image": {
+          "type": "string"
+        },
         "id": {
           "type": "integer",
           "format": "uint64",

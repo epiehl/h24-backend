@@ -25,6 +25,9 @@ func (h H24Connector) GetBySKU(sku uint64) (*models.Item, error) {
 			Name   graphql.String `json:"name"`
 			Url    graphql.String `json:"url"`
 			Sku    graphql.String `json:"sku"`
+			Images []struct {
+				Path graphql.String `json:"path"`
+			} `json:"images" graphql:"images(limit: 1)"`
 			Prices struct {
 				Currency graphql.String `json:"currency"`
 				Regular  struct {
@@ -61,6 +64,8 @@ func (h H24Connector) GetBySKU(sku uint64) (*models.Item, error) {
 	return &models.Item{
 		Name:                string(query.Articles[0].Name),
 		SKU:                 sku,
+		ImageUrl:            string(query.Articles[0].Images[0].Path),
+		RetailUrl:           string(query.Articles[0].Url),
 		RetailPrice:         retailPrice / 100,
 		RetailDiscount:      retailDiscount / 100,
 		RetailDiscountPrice: retailDiscountPrice / 100,

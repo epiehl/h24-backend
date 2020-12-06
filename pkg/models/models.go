@@ -21,6 +21,8 @@ type Item struct {
 	ID                     uint64    `json:"id"`
 	Name                   string    `json:"name"`
 	SKU                    uint64    `json:"sku" gorm:"unique;not null"`
+	ImageUrl               string    `json:"image_url"`
+	RetailUrl              string    `json:"retail_url"`
 	RetailPrice            float64   `json:"retail_price"`
 	RetailDiscount         float64   `json:"retail_discount"`
 	RetailDiscountPrice    float64   `json:"retail_discount_price"`

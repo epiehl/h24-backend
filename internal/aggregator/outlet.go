@@ -181,6 +181,26 @@ func (o outletAggregator) ExtractItemFromSelection(selection *goquery.Selection)
 	newItem.RetailPrice = ePriceOld
 	newItem.LastAggregatedAt = time.Now()
 
+	oItem, err := o.H24Connector.GetBySKU(eSku)
+	if err != nil {
+		return err
+	}
+
+	if newItem.Name != oItem.Name ||
+		newItem.RetailUrl != oItem.RetailUrl ||
+		newItem.RetailPrice != oItem.RetailPrice ||
+		newItem.RetailDiscount != oItem.RetailDiscount ||
+		newItem.RetailDiscountPrice != oItem.RetailDiscountPrice ||
+		newItem.ImageUrl != oItem.ImageUrl {
+
+		newItem.Name = oItem.Name
+		newItem.RetailUrl = oItem.RetailUrl
+		newItem.RetailPrice = oItem.RetailPrice
+		newItem.RetailDiscount = oItem.RetailDiscount
+		newItem.RetailDiscountPrice = oItem.RetailDiscountPrice
+		newItem.ImageUrl = oItem.ImageUrl
+	}
+
 	if !itemExists {
 		newItem.SKU = eSku
 		err := o.Registry.ItemRepository.Create(newItem)

@@ -20,14 +20,19 @@ func (resp WishlistResponse) Render(w http.ResponseWriter, r *http.Request) erro
 
 func NewWishlistResponse(wishlist *models.Wishlist) *WishlistResponse {
 	skus := make([]uint64, wishlist.Length())
+	var itemUrl string
 
 	for index, item := range wishlist.Items {
+		if index == 0 {
+			itemUrl = item.ImageUrl
+		}
 		skus[index] = item.SKU
 	}
 
 	respList := Wishlist{
 		wishlist.ID,
 		wishlist.Name,
+		itemUrl,
 		skus,
 	}
 
@@ -69,6 +74,8 @@ func NewItemResponse(item *models.Item) *ItemResponse {
 		item.ID,
 		item.Name,
 		item.SKU,
+		item.ImageUrl,
+		item.RetailUrl,
 		item.RetailPrice,
 		item.RetailDiscount,
 		item.RetailDiscountPrice,

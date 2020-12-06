@@ -118,6 +118,32 @@ func (c applicationContext) ItemCtx(next http.Handler) http.Handler {
 			}
 		}
 
+		oItem, err := c.H24Connector.GetBySKU(sku)
+		if err != nil {
+			_ = render.Render(w, r, ErrRender(err))
+			return
+		}
+
+		if item.Name != oItem.Name ||
+			item.RetailUrl != oItem.RetailUrl ||
+			item.RetailPrice != oItem.RetailPrice ||
+			item.RetailDiscount != oItem.RetailDiscount ||
+			item.RetailDiscountPrice != oItem.RetailDiscountPrice ||
+			item.ImageUrl != oItem.ImageUrl {
+
+			item.Name = oItem.Name
+			item.RetailUrl = oItem.RetailUrl
+			item.RetailPrice = oItem.RetailPrice
+			item.RetailDiscount = oItem.RetailDiscount
+			item.RetailDiscountPrice = oItem.RetailDiscountPrice
+			item.ImageUrl = oItem.ImageUrl
+			if err := c.ItemRepository.Update(item); err != nil {
+				utils.Log.Errorf("got error updating item to outlet state")
+				_ = render.Render(w, r, ErrRender(err))
+				return
+			}
+		}
+
 		ctx := context.WithValue(r.Context(), "item", item)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
